@@ -20,6 +20,10 @@
 #  name = "github.com/x/y"
 #  version = "2.4.0"
 
+[metadata.heroku]
+  root-package = "gitlab.com/william-richard/JigsawBrain"
+  ensure = "false"
+  version = "go1.9.2"
 
 [[constraint]]
   name = "github.com/sirupsen/logrus"
