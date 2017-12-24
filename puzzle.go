@@ -34,29 +34,37 @@ type PuzzleMetadata struct {
 	NumCols int
 }
 
-func CreatePuzzleFromFile(inputFile string, pieceSize int, seed int64) (Puzzle, error) {
-	var puz Puzzle
-	// load the image file
-	f, err := os.Open(inputFile)
+func loadNrgbaImage(imagePath string) (*image.NRGBA, error) {
+	var nrgba_image *image.NRGBA
+	f, err := os.Open(imagePath)
 	if err != nil {
-		return puz, errors.New(fmt.Sprintf("Error loading input file %s", err.Error()))
+		return nrgba_image, errors.New(fmt.Sprintf("Error loading input file %s", err.Error()))
 	}
 
 	r := bufio.NewReader(f)
 
 	raw_image, _, err := image.Decode(r)
 	if err != nil {
-		return puz, errors.New(fmt.Sprintf("Error decoding image file %s", err.Error()))
+		return nrgba_image, errors.New(fmt.Sprintf("Error decoding image file %s", err.Error()))
 	}
 
-	// convert to nrgba image so we can keep things lossless
-	puz.Image = image.NewNRGBA(raw_image.Bounds())
+	nrgba_image = image.NewNRGBA(raw_image.Bounds())
 	for x := raw_image.Bounds().Min.X; x < raw_image.Bounds().Max.X; x++ {
 		for y := raw_image.Bounds().Min.Y; y < raw_image.Bounds().Max.Y; y++ {
-			puz.Image.Set(x, y, raw_image.At(x, y))
+			nrgba_image.Set(x, y, raw_image.At(x, y))
 		}
 	}
-	log.WithField("image_bounds", raw_image.Bounds()).Debug("Raw image bounds")
+
+	return nrgba_image, nil
+}
+
+func CreatePuzzleFromFile(inputFile string, pieceSize int, seed int64) (Puzzle, error) {
+	var puz Puzzle
+	var err error
+	puz.Image, err = loadNrgbaImage(inputFile)
+	if err != nil {
+		return puz, err
+	}
 
 	// figure out how many pieces we will have in each dimension - crop from the bottom right (for now)
 	dimensionPoint := puz.Image.Bounds().Max.Sub(puz.Image.Bounds().Min)
@@ -91,15 +99,41 @@ func CreatePuzzleFromFile(inputFile string, pieceSize int, seed int64) (Puzzle, 
 	return puz, nil
 }
 
-func CreateFromDirectory(inputDir string) error {
-	rowFileInfos, err := ioutil.ReadDir(inputDir)
+func CreatePuzzleFromDirectory(inputDir string) (Puzzle, error) {
+	var puz Puzzle
+
+	puzzleMetadataJson, err := ioutil.ReadFile(path.Join(inputDir, "puzzle.json"))
 	if err != nil {
-		return err
+		return puz, err
 	}
-	for _, file := range rowFileInfos {
+	var puzzleMetadata PuzzleMetadata
+	err = json.Unmarshal(puzzleMetadataJson, &puzzleMetadata)
+	if err != nil {
+		return puz, err
+	}
+	puz.NumRows = puzzleMetadata.NumRows
+	puz.NumCols = puzzleMetadata.NumCols
 
+	puz.Image, err = loadNrgbaImage(path.Join(inputDir, "original_image.png"))
+
+	for row := 0; row < puz.NumRows; row++ {
+		rowDir := path.Join(inputDir, fmt.Sprintf("%d", row))
+		for col := 0; col < puz.NumCols; col++ {
+			piecePath := path.Join(rowDir, fmt.Sprintf("%d.png", col))
+			pieceImage, err := loadNrgbaImage(piecePath)
+			if err != nil {
+				return puz, err
+			}
+			piece := Piece{
+				PuzzleRow: row,
+				PuzzleCol: col,
+				Image:     pieceImage,
+			}
+			puz.Pieces = append(puz.Pieces, piece)
+		}
 	}
 
+	return puz, nil
 }
 
 func (puz Puzzle) Get(row int, column int) (Piece, error) {
