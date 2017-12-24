@@ -23,15 +23,17 @@ type Piece struct {
 }
 
 type Puzzle struct {
-	Pieces  []Piece
-	NumRows int
-	NumCols int
-	Image   *image.NRGBA
+	Pieces    []Piece
+	NumRows   int
+	NumCols   int
+	PieceSize int
+	Image     *image.NRGBA
 }
 
 type PuzzleMetadata struct {
-	NumRows int
-	NumCols int
+	NumRows   int
+	NumCols   int
+	PieceSize int
 }
 
 func loadNrgbaImage(imagePath string) (*image.NRGBA, error) {
@@ -70,6 +72,7 @@ func CreatePuzzleFromFile(inputFile string, pieceSize int, seed int64) (Puzzle, 
 	dimensionPoint := puz.Image.Bounds().Max.Sub(puz.Image.Bounds().Min)
 	puz.NumRows = dimensionPoint.Y / pieceSize
 	puz.NumCols = dimensionPoint.X / pieceSize
+	puz.PieceSize = pieceSize
 	log.Debug(fmt.Sprintf("Dimensions %v", dimensionPoint))
 	log.Debug(fmt.Sprintf("%d rows %d cols", puz.NumRows, puz.NumCols))
 
@@ -113,6 +116,7 @@ func CreatePuzzleFromDirectory(inputDir string) (Puzzle, error) {
 	}
 	puz.NumRows = puzzleMetadata.NumRows
 	puz.NumCols = puzzleMetadata.NumCols
+	puz.PieceSize = puzzleMetadata.PieceSize
 
 	puz.Image, err = loadNrgbaImage(path.Join(inputDir, "original_image.png"))
 
@@ -149,6 +153,10 @@ func (puz Puzzle) Get(row int, column int) (Piece, error) {
 
 func (puz Puzzle) WriteToDirectory(outputDir string) error {
 	// save the original puzzle image to a file
+	err := os.MkdirAll(outputDir, 0777)
+	if err != nil && !os.IsExist(err) {
+		return errors.New(fmt.Sprintf("Error creating output directory %s: %s", outputDir, err.Error()))
+	}
 	puzFile, err := os.Create(path.Join(outputDir, "original_image.png"))
 	if err != nil {
 		return err
@@ -159,7 +167,7 @@ func (puz Puzzle) WriteToDirectory(outputDir string) error {
 		return err
 	}
 	// save some puzzle metadata to a file
-	puzMetaJson, err := json.Marshal(PuzzleMetadata{NumRows: puz.NumRows, NumCols: puz.NumCols})
+	puzMetaJson, err := json.Marshal(PuzzleMetadata{NumRows: puz.NumRows, NumCols: puz.NumCols, PieceSize: puz.PieceSize})
 	if err != nil {
 		return err
 	}
