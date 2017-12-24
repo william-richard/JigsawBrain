@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"image"
@@ -26,6 +27,11 @@ type Puzzle struct {
 	NumRows int
 	NumCols int
 	Image   *image.NRGBA
+}
+
+type PuzzleMetadata struct {
+	NumRows int
+	NumCols int
 }
 
 func CreatePuzzleFromFile(inputFile string, pieceSize int, seed int64) (Puzzle, error) {
@@ -108,6 +114,26 @@ func (puz Puzzle) Get(row int, column int) (Piece, error) {
 }
 
 func (puz Puzzle) WriteToDirectory(outputDir string) error {
+	// save the original puzzle image to a file
+	puzFile, err := os.Create(path.Join(outputDir, "original_image.png"))
+	if err != nil {
+		return err
+	}
+	err = png.Encode(puzFile, puz.Image)
+	err = puzFile.Close()
+	if err != nil {
+		return err
+	}
+	// save some puzzle metadata to a file
+	puzMetaJson, err := json.Marshal(PuzzleMetadata{NumRows: puz.NumRows, NumCols: puz.NumCols})
+	if err != nil {
+		return err
+	}
+	err = ioutil.WriteFile(path.Join(outputDir, "puzzle.json"), puzMetaJson, 0644)
+	if err != nil {
+		return err
+	}
+
 	for row := 0; row < puz.NumRows; row++ {
 		// create the dir for the row
 		rowDir := path.Join(outputDir, fmt.Sprintf("%d", row))
