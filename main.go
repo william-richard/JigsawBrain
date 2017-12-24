@@ -43,7 +43,7 @@ func main() {
 				cli.IntFlag{
 					Name:  "size, s",
 					Usage: "Piece size",
-					Value: 10,
+					Value: 50,
 				},
 			},
 			Action: func(c *cli.Context) error {
