@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"image"
+	"image/draw"
 	"image/png"
 	"io/ioutil"
 	"os"
@@ -51,11 +52,7 @@ func loadNrgbaImage(imagePath string) (*image.NRGBA, error) {
 	}
 
 	nrgba_image = image.NewNRGBA(raw_image.Bounds())
-	for x := raw_image.Bounds().Min.X; x < raw_image.Bounds().Max.X; x++ {
-		for y := raw_image.Bounds().Min.Y; y < raw_image.Bounds().Max.Y; y++ {
-			nrgba_image.Set(x, y, raw_image.At(x, y))
-		}
-	}
+	draw.Draw(nrgba_image, nrgba_image.Bounds(), raw_image, raw_image.Bounds().Min, draw.Src)
 
 	return nrgba_image, nil
 }
