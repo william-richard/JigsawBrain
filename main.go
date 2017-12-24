@@ -14,8 +14,21 @@ func main() {
 	app.Name = "generate"
 	app.Usage = "Make a jigsaw puzzle"
 	app.Version = "0.0.1"
+	app.Flags = []cli.Flag{
+		cli.BoolFlag{
+			Name:  "debug, d",
+			Usage: "Show debug info",
+		},
+	}
+	app.Before = func(c *cli.Context) error {
+		if c.Bool("debug") {
+			log.SetLevel(log.DebugLevel)
+		}
+		return nil
+	}
+
 	app.Commands = []cli.Command{
-		cli.Command{
+		{
 			Name:  "generate",
 			Usage: "Generate puzzles",
 			Flags: []cli.Flag{
@@ -30,7 +43,7 @@ func main() {
 				cli.IntFlag{
 					Name:  "size, s",
 					Usage: "Piece size",
-					Value: 10,
+					Value: 50,
 				},
 			},
 			Action: func(c *cli.Context) error {
@@ -42,7 +55,25 @@ func main() {
 				if len(output) == 0 {
 					log.Fatal("Output is required")
 				}
-				return CreatePuzzle(input, output, c.Int("size"), time.Now().UTC().UnixNano())
+				size := c.Int("size")
+				llog := log.WithFields(log.Fields{"input": input, "output": output, "size": size})
+				llog.Debug("Starting to create puzzle")
+				puzzle, err := CreatePuzzleFromFile(input, size, time.Now().UTC().UnixNano())
+				if err != nil {
+					llog.WithError(err).Error("Error creating puzzle from files")
+					return err
+				}
+
+				llog.Debug("Loaded puzzle")
+				err = puzzle.WriteToDirectory(output)
+				if err != nil {
+					llog.WithError(err).Error("Error writing puzzle to directory")
+					return err
+				}
+				llog.Debug("Wrote puzzle to dir")
+
+				return nil
+
 			},
 		},
 	}
