@@ -1,0 +1,62 @@
+{
+    "memo": "0d43ba61f1191813e7becf4351f90f9912f9db04998aafefe8d6a568abc394bd",
+    "projects": [
+        {
+            "name": "github.com/davecgh/go-spew",
+            "version": "v1.1.0",
+            "revision": "346938d642f2ec3594ed81d874461961cd0faa76",
+            "packages": [
+                "spew"
+            ]
+        },
+        {
+            "name": "github.com/pmezard/go-difflib",
+            "version": "v1.0.0",
+            "revision": "792786c7400a136282c1664665ae0a8db921c6c2",
+            "packages": [
+                "difflib"
+            ]
+        },
+        {
+            "name": "github.com/sirupsen/logrus",
+            "version": "v1.0.4",
+            "revision": "d682213848ed68c0a260ca37d6dd5ace8423f5ba",
+            "packages": [
+                "."
+            ]
+        },
+        {
+            "name": "github.com/stretchr/testify",
+            "version": "v1.2.0",
+            "revision": "b91bfb9ebec76498946beb6af7c0230c7cc7ba6c",
+            "packages": [
+                "assert"
+            ]
+        },
+        {
+            "name": "golang.org/x/crypto",
+            "branch": "master",
+            "revision": "13931e22f9e72ea58bb73048bc752b48c6d4d4ac",
+            "packages": [
+                "ssh/terminal"
+            ]
+        },
+        {
+            "name": "golang.org/x/sys",
+            "branch": "master",
+            "revision": "810d7000345868fc619eb81f46307107118f4ae1",
+            "packages": [
+                "unix",
+                "windows"
+            ]
+        },
+        {
+            "name": "gopkg.in/urfave/cli.v1",
+            "version": "v1.20.0",
+            "revision": "cfb38830724cc34fedffe9a2a29fb54fa9169cd1",
+            "packages": [
+                "."
+            ]
+        }
+    ]
+}
